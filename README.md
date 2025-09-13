@@ -10,22 +10,25 @@ A modern text-to-speech web application built with Next.js 14, featuring multi-l
 ## 🚀 Features
 
 ### Core Functionality
-- **Multi-language Audio Playback**: Support for English and Arabic audio files
+- **Multi-language Audio Playback**: Support for English and Arabic audio files with production-ready streaming
 - **Voice Selection**: Choose from 6 different voice personalities
-- **Real-time Audio Controls**: Play, pause, and download audio files
+- **Real-time Audio Controls**: Play, pause, and download audio files with robust error handling
 - **Language Switching**: Dynamic language selection with instant audio switching
+- **Production Audio Support**: Optimized for deployment with proper CORS, caching, and content headers
 
 ### File Management
-- **Audio Upload System**: Upload audio files with language tagging
-- **File Organization**: Categorize audio files by language (English/Arabic)
+- **Audio Upload System**: Upload audio files with language tagging (English/Arabic)
+- **File Organization**: Categorize and store audio files by language in MongoDB
 - **Playback Management**: Single-instance audio playback (stops previous when new audio starts)
-- **File Listing**: View all uploaded audio files with metadata
+- **File Listing**: View all uploaded audio files with metadata and status
+- **Debug Capabilities**: Built-in debugging tools for troubleshooting audio issues
 
 ### User Interface
 - **Modern Design**: Clean, responsive UI built with Tailwind CSS
 - **Interactive Components**: Custom dropdown menus, buttons, and form controls
-- **Real-time Feedback**: Loading states, visual indicators, and error handling
+- **Real-time Feedback**: Loading states, visual indicators, comprehensive error handling
 - **Tab Navigation**: Organized interface with tab-based navigation
+- **Production Alerts**: User-friendly error messages and debugging information
 
 ## 🛠️ Tech Stack
 
@@ -37,10 +40,18 @@ A modern text-to-speech web application built with Next.js 14, featuring multi-l
 - **Icons**: Lucide React
 
 ### Backend
-- **API**: Next.js API Routes
-- **Database**: MongoDB with native driver
-- **File Storage**: Local file system (public/uploads)
-- **File Handling**: Native Node.js fs/promises
+- **API**: Next.js API Routes with comprehensive error handling
+- **Database**: MongoDB with optimized connection pooling
+- **File Storage**: Local file system with production-ready serving (public/uploads)
+- **File Handling**: Native Node.js fs/promises with proper MIME type detection
+- **Middleware**: Custom middleware for audio file CORS and caching
+
+### Production Features  
+- **Audio Streaming**: Optimized audio delivery with proper headers
+- **Error Handling**: Comprehensive error tracking and user feedback
+- **Debug Tools**: Built-in debugging API for troubleshooting
+- **CORS Support**: Cross-origin resource sharing for audio files
+- **Caching**: Efficient caching strategies for static assets
 
 ### Development Tools
 - **Package Manager**: npm
@@ -71,7 +82,9 @@ A modern text-to-speech web application built with Next.js 14, featuring multi-l
    Create a `.env.local` file in the root directory (copy from `.env.example`):
    ```env
    NODE_ENV=development
-   # MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/panelvoices?retryWrites=true&w=majority
+   # Replace with your actual MongoDB Atlas connection string
+   MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/panelvoices?retryWrites=true&w=majority&appName=Cluster0
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
    ```
 
 4. **Create uploads directory**
@@ -93,9 +106,11 @@ A modern text-to-speech web application built with Next.js 14, featuring multi-l
 elevenlabs-clone/
 ├── app/                          # Next.js App Router
 │   ├── api/                      # API Routes
-│   │   ├── audio-url/           # Fetch audio by language
+│   │   ├── audio-url/           # Fetch audio by language with production fixes
 │   │   │   └── route.ts
-│   │   └── upload/              # File upload and listing
+│   │   ├── debug/               # Debug API for troubleshooting
+│   │   │   └── route.ts
+│   │   └── upload/              # File upload and listing with enhanced error handling
 │   │       └── route.ts
 │   ├── upload-audio/            # Upload page route
 │   │   └── page.tsx
@@ -111,12 +126,16 @@ elevenlabs-clone/
 │   ├── header.tsx               # Site header
 │   ├── hero-section.tsx         # Hero section
 │   ├── tab-bar.tsx              # Navigation tabs
-│   └── text-to-speech-interface.tsx  # Main TTS interface
+│   └── text-to-speech-interface.tsx  # Main TTS interface with production fixes
 ├── lib/                         # Utilities and configurations
-│   ├── mongodb.ts               # MongoDB connection
+│   ├── mongodb.ts               # MongoDB connection with environment handling
 │   └── utils.ts                 # Utility functions
 ├── public/                      # Static assets
 │   └── uploads/                 # Uploaded audio files
+├── middleware.ts                # Custom middleware for audio file handling
+├── next.config.mjs              # Next.js configuration with audio optimizations
+├── .env.example                 # Environment template
+├── .env.production.example      # Production environment template
 └── package.json                 # Dependencies and scripts
 ```
 
@@ -141,6 +160,26 @@ GET /api/upload
 ```http
 GET /api/audio-url?language=english
 GET /api/audio-url?language=arabic
+
+Response:
+{
+  "audioUrl": "http://localhost:3000/uploads/filename.wav",
+  "filename": "original-name.wav",
+  "language": "english"
+}
+```
+
+### Debug API (Production Troubleshooting)
+```http
+GET /api/debug
+
+Response:
+{
+  "environment": {...},
+  "database": {...},
+  "audioFiles": [...],
+  "languages": {...}
+}
 ```
 
 ## 💾 Database Schema
@@ -179,6 +218,8 @@ GET /api/audio-url?language=arabic
 - **Voice Personalities**: Each voice has unique characteristics for different use cases
 - **Audio Management**: Only one audio plays at a time across the application
 - **Download Support**: Download generated or uploaded audio files
+- **Production Debugging**: Use `/api/debug` endpoint to troubleshoot audio issues
+- **Error Handling**: Comprehensive error messages for production troubleshooting
 
 ## 🔒 Environment Variables
 
@@ -187,13 +228,15 @@ The project uses different environment configurations for development and produc
 ### Development (`.env.local`)
 ```env
 NODE_ENV=development
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/panelvoices?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/panelvoices?retryWrites=true&w=majority&appName=Cluster0
+NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 ### Production (`.env.production`)
 ```env
 NODE_ENV=production
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/panelvoices?retryWrites=true&w=majority
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/panelvoices?retryWrites=true&w=majority&appName=Cluster0
+NEXT_PUBLIC_APP_URL=https://your-domain.com
 ```
 
 ### Setup Instructions
@@ -202,6 +245,16 @@ MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/panelvoices?retr
 3. For production, create `.env.production` with production values
 
 ## 🚀 Deployment
+
+### Production Fixes & Optimizations
+
+This application includes several production-specific optimizations:
+
+- **Audio File Serving**: Custom middleware handles CORS, caching, and MIME types
+- **Error Handling**: Comprehensive error tracking with user-friendly messages
+- **Database Optimization**: Environment-specific connection pooling
+- **Debug Tools**: Built-in debugging endpoint for production troubleshooting
+- **Static Asset Optimization**: Proper caching headers for audio files
 
 ### Vercel Deployment
 1. Push code to GitHub repository
@@ -219,9 +272,26 @@ npm start
 
 ### Available Scripts
 - `npm run dev` - Start development server
-- `npm run build` - Build for production
+- `npm run build` - Build for production with optimizations
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
+
+### Production Deployment
+1. **Build the application**:
+   ```bash
+   npm run build
+   ```
+
+2. **Set production environment variables**:
+   ```bash
+   # Create .env.production with your production values
+   cp .env.production.example .env.production
+   ```
+
+3. **Start production server**:
+   ```bash
+   npm start
+   ```
 
 ### Adding New Features
 1. Create components in `components/` directory
@@ -234,19 +304,33 @@ npm start
 ### Common Issues
 
 1. **"No audio URLs" error**:
-   - Ensure MongoDB is running
+   - Ensure MongoDB is running and accessible
    - Upload audio files via `/upload-audio` page
-   - Check that files are tagged with correct language
+   - Check that files are tagged with correct language (english/arabic)
+   - Use `/api/debug` endpoint to verify database connection and file status
 
-2. **Upload failures**:
-   - Verify `public/uploads` directory exists
-   - Check file permissions
-   - Ensure file size is within limits
+2. **Audio not playing in production**:
+   - Verify `NEXT_PUBLIC_APP_URL` is set correctly in environment variables
+   - Check browser console for CORS or network errors
+   - Ensure audio files exist in `public/uploads` directory
+   - Test with `/api/debug` to verify file accessibility
 
-3. **Database connection issues**:
-   - Verify `MONGODB_URI` in `.env.local`
-   - Check MongoDB server status
-   - Ensure database name matches configuration
+3. **Upload failures**:
+   - Verify `public/uploads` directory exists and has write permissions
+   - Check file size limits (default: reasonable limits for web deployment)
+   - Ensure language parameter is included (english/arabic only)
+   - Check MongoDB connection and write permissions
+
+4. **Database connection issues**:
+   - Verify `MONGODB_URI` in environment file
+   - Check MongoDB Atlas cluster status and IP whitelist
+   - Ensure database name matches configuration (`panelvoices`)
+   - Test connection with `/api/debug` endpoint
+
+5. **Build/deployment issues**:
+   - Run `npm run build` to check for build errors
+   - Verify all environment variables are set
+   - Check middleware configuration for audio file serving
 
 ## 🤝 Contributing
 

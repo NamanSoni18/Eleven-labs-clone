@@ -71,9 +71,17 @@ export async function GET() {
         language: audio.language,
         uploadedAt: audio.uploadedAt,
       })),
+      total: audios.length,
+      languages: {
+        english: audios.filter(a => a.language === "english").length,
+        arabic: audios.filter(a => a.language === "arabic").length
+      }
     })
   } catch (error) {
     console.error("Error fetching audios:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ 
+      error: "Failed to fetch audio files",
+      details: error instanceof Error ? error.message : "Unknown error"
+    }, { status: 500 })
   }
 }

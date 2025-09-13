@@ -28,6 +28,7 @@ export function TextToSpeechInterface() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const audioRef = useRef<HTMLAudioElement>(null)
 
+    // New handlePlay: fetch audio URL for selected language from /api/audio-url
   const handlePlay = async () => {
     if (isPlaying && audioRef.current) {
       audioRef.current.pause()
@@ -35,25 +36,51 @@ export function TextToSpeechInterface() {
       return
     }
     if (audioUrl && audioRef.current) {
-      audioRef.current.play()
-      setIsPlaying(true)
-      return
+      try {
+        await audioRef.current.play()
+        setIsPlaying(true)
+        return
+      } catch (error) {
+        console.error("Error playing existing audio:", error)
+        setAudioUrl(null) // Reset to fetch again
+      }
     }
     setIsLoading(true)
     try {
       // Fetch audio URL for selected language
+      console.log("Fetching audio for language:", selectedLanguage.toLowerCase())
       const response = await fetch(`/api/audio-url?language=${selectedLanguage.toLowerCase()}`)
-      if (response.ok) {
-        const data = await response.json()
-        setAudioUrl(data.audioUrl)
-        if (audioRef.current) {
-          audioRef.current.src = data.audioUrl
-          audioRef.current.play()
+      
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error("API Error:", errorData)
+        alert(`Error: ${errorData.error}`)
+        return
+      }
+      
+      const data = await response.json()
+      console.log("Received audio data:", data)
+      
+      if (!data.audioUrl) {
+        console.error("No audio URL in response")
+        alert("No audio URL received from server")
+        return
+      }
+      
+      setAudioUrl(data.audioUrl)
+      if (audioRef.current) {
+        audioRef.current.src = data.audioUrl
+        try {
+          await audioRef.current.play()
           setIsPlaying(true)
+        } catch (playError) {
+          console.error("Error playing audio:", playError)
+          alert("Error playing audio. Check console for details.")
         }
       }
     } catch (e) {
-      console.error(e)
+      console.error("Network error:", e)
+      alert("Network error. Check your connection and try again.")
     } finally {
       setIsLoading(false)
     }
