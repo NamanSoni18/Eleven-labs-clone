@@ -41,11 +41,8 @@ export function TextToSpeechInterface() {
     }
     setIsLoading(true)
     try {
-      const response = await fetch("/api/generate-audio", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, voice: selectedVoice, language: selectedLanguage.toLowerCase() }),
-      })
+      // Fetch audio URL for selected language
+      const response = await fetch(`/api/audio-url?language=${selectedLanguage.toLowerCase()}`)
       if (response.ok) {
         const data = await response.json()
         setAudioUrl(data.audioUrl)
@@ -135,16 +132,11 @@ export function TextToSpeechInterface() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="h-9 rounded-sm bg-transparent px-3 text-xs">
-                🇺🇸 {selectedLanguage} <ChevronDown className="ml-1 h-3.5 w-3.5" />
+                {selectedLanguage === "ENGLISH" ? "🇺🇸" : "🇸🇦"} {selectedLanguage} <ChevronDown className="ml-1 h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
-              {[
-                ["ENGLISH", "🇺🇸"],
-                ["SPANISH", "🇪🇸"],
-                ["FRENCH", "🇫🇷"],
-                ["GERMAN", "🇩🇪"],
-              ].map(([lang, flag]) => (
+              {["ENGLISH", "ARABIC"].map((lang) => (
                 <DropdownMenuItem
                   key={lang}
                   onClick={() => {
@@ -152,7 +144,7 @@ export function TextToSpeechInterface() {
                     setAudioUrl(null)
                   }}
                 >
-                  {flag} {lang.charAt(0) + lang.slice(1).toLowerCase()}
+                  {lang === "ENGLISH" ? "🇺🇸" : "🇸🇦"} {lang.charAt(0) + lang.slice(1).toLowerCase()}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
